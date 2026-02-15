@@ -58,7 +58,8 @@ make helm-install
 kubectl -n node-disks-system get pods -o wide
 ```
 
-At this point, the operator, agent DaemonSet, and seeder DaemonSet should be running.
+At this point, the operator and agent DaemonSet should be running.
+The agent init container seeds `disk1.img..diskN.img` once per node (idempotent), then exits.
 
 ### 4) Verify discovery
 
@@ -97,8 +98,7 @@ NODE_NAME=$(kubectl get nodedisk "$ND_NAME" -o jsonpath='{.spec.nodeName}')
 DISK_ID=$(kubectl get nodedisk "$ND_NAME" -o jsonpath='{.spec.diskID}')
 echo "node=$NODE_NAME disk=$DISK_ID"
 
-SEEDER_POD=$(kubectl -n node-disks-system get pod -l app.kubernetes.io/name=node-disks-seeder --field-selector spec.nodeName="$NODE_NAME" -o jsonpath='{.items[0].metadata.name}')
-kubectl -n node-disks-system exec "$SEEDER_POD" -- ls -1 /host-node-disks-manager/disks | grep -E "^${DISK_ID}\\.img(\\.reserved)?$"
+minikube -p node-disks-dev ssh -n "$NODE_NAME" "ls -1 /var/lib/node-disks-manager/disks | grep -E '^${DISK_ID}\\.img(\\.reserved)?$'"
 ```
 
 You should see both `<disk-id>.img` and `<disk-id>.img.reserved`.
@@ -118,7 +118,7 @@ kubectl label nodedisk "$ND_NAME" localtest.example.com/auto-reserve-
 kubectl get nodedisk "$ND_NAME" -o jsonpath='{.spec.desired.state} {.spec.desired.owner} {.status.node.phase}{"\n"}'
 
 # should show only the base image file for this disk after release
-kubectl -n node-disks-system exec "$SEEDER_POD" -- ls -1 /host-node-disks-manager/disks | grep -E "^${DISK_ID}\\.img(\\.reserved)?$"
+minikube -p node-disks-dev ssh -n "$NODE_NAME" "ls -1 /var/lib/node-disks-manager/disks | grep -E '^${DISK_ID}\\.img(\\.reserved)?$'"
 
 # optional: verify the reserved marker is gone on the node
 minikube -p node-disks-dev ssh -n "$NODE_NAME" -- test ! -f /var/lib/node-disks-manager/disks/${DISK_ID}.img.reserved && echo "reserved marker removed"

@@ -24,6 +24,16 @@ spec:
             - -ec
             - |
               mkdir -p /host-node-disks-manager/disks
+{{- if .Values.agent.bootstrap.enabled }}
+              i=1
+              while [ $i -le {{ .Values.agent.bootstrap.disksPerNode }} ]; do
+                f="/host-node-disks-manager/disks/disk${i}.img"
+                if [ ! -f "$f" ]; then
+                  dd if=/dev/zero of="$f" bs=1M count={{ .Values.agent.bootstrap.diskSizeMiB }} >/dev/null 2>&1
+                fi
+                i=$((i+1))
+              done
+{{- end }}
               chown -R 65532:65532 /host-node-disks-manager/disks
               chmod -R ug+rwX /host-node-disks-manager/disks
           securityContext:

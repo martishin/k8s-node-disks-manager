@@ -27,6 +27,10 @@ agent:
     tag: dev
     pullPolicy: IfNotPresent
   scanPeriod: 15s
+  bootstrap:
+    enabled: true
+    disksPerNode: 3
+    diskSizeMiB: 64
   resources:
     requests:
       cpu: 50m
@@ -35,15 +39,6 @@ agent:
       cpu: 200m
       memory: 256Mi
   hostPathRoot: /var/lib/node-disks-manager
-
-seeder:
-  enabled: true
-  image:
-    repository: busybox
-    tag: "1.36"
-    pullPolicy: IfNotPresent
-  disksPerNode: 3
-  diskSizeMiB: 64
 
 serviceMonitor:
   enabled: false
