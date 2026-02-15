@@ -1,0 +1,49 @@
+namespace:
+  create: true
+  name: node-disks-system
+  podSecurity:
+    enforce: privileged
+    audit: privileged
+    warn: privileged
+
+controller:
+  image:
+    repository: node-disks-operator
+    tag: dev
+    pullPolicy: IfNotPresent
+  leaderElection: true
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+agent:
+  image:
+    repository: node-disks-agent
+    tag: dev
+    pullPolicy: IfNotPresent
+  scanPeriod: 15s
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  hostPathRoot: /var/lib/node-disks-manager
+
+seeder:
+  enabled: true
+  image:
+    repository: busybox
+    tag: "1.36"
+    pullPolicy: IfNotPresent
+  disksPerNode: 3
+  diskSizeMiB: 64
+
+serviceMonitor:
+  enabled: false

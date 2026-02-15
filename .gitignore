@@ -28,5 +28,8 @@ go.work.sum
 .env
 
 # Editor/IDE
-# .idea/
+.idea/
 # .vscode/
+
+# Local build tools and generated binaries
+bin/

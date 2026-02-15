@@ -1,0 +1,33 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: node-disks-operator
+  namespace: {{ include "node-disks-manager.namespace" . }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-disks-operator
+  namespaceSelector:
+    matchNames:
+      - {{ include "node-disks-manager.namespace" . }}
+  endpoints:
+    - port: metrics
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: node-disks-agent
+  namespace: {{ include "node-disks-manager.namespace" . }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-disks-agent
+  namespaceSelector:
+    matchNames:
+      - {{ include "node-disks-manager.namespace" . }}
+  endpoints:
+    - port: metrics
+      interval: 15s
+{{- end }}

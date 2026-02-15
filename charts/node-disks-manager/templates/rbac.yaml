@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: node-disks-operator
+  namespace: {{ include "node-disks-manager.namespace" . }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: node-disks-agent
+  namespace: {{ include "node-disks-manager.namespace" . }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: node-disks-operator
+rules:
+  - apiGroups: ["localtest.example.com"]
+    resources: ["nodedisks"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+  - apiGroups: ["localtest.example.com"]
+    resources: ["nodedisks/status"]
+    verbs: ["get", "patch", "update"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch", "update"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create", "get", "list", "watch", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: node-disks-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: node-disks-operator
+subjects:
+  - kind: ServiceAccount
+    name: node-disks-operator
+    namespace: {{ include "node-disks-manager.namespace" . }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: node-disks-agent
+rules:
+  - apiGroups: ["localtest.example.com"]
+    resources: ["nodedisks"]
+    verbs: ["get", "list", "watch", "create", "patch", "update"]
+  - apiGroups: ["localtest.example.com"]
+    resources: ["nodedisks/status"]
+    verbs: ["get", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: node-disks-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: node-disks-agent
+subjects:
+  - kind: ServiceAccount
+    name: node-disks-agent
+    namespace: {{ include "node-disks-manager.namespace" . }}

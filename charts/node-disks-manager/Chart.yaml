@@ -1,0 +1,6 @@
+apiVersion: v2
+name: node-disks-manager
+description: Node disks operator and agent for Kubernetes
+version: 0.1.0
+appVersion: "0.1.0"
+type: application

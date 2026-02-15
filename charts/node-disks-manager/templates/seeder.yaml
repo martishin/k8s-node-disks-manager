@@ -1,0 +1,44 @@
+{{- if .Values.seeder.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-disks-seeder
+  namespace: {{ include "node-disks-manager.namespace" . }}
+  labels:
+    app.kubernetes.io/name: node-disks-seeder
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-disks-seeder
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: node-disks-seeder
+    spec:
+      containers:
+        - name: seeder
+          image: {{ .Values.seeder.image.repository }}:{{ .Values.seeder.image.tag }}
+          imagePullPolicy: {{ .Values.seeder.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              mkdir -p /host-node-disks-manager/disks
+              i=1
+              while [ $i -le {{ .Values.seeder.disksPerNode }} ]; do
+                f="/host-node-disks-manager/disks/disk${i}.img"
+                if [ ! -f "$f" ]; then
+                  dd if=/dev/zero of="$f" bs=1M count={{ .Values.seeder.diskSizeMiB }} >/dev/null 2>&1
+                fi
+                i=$((i+1))
+              done
+              tail -f /dev/null
+          volumeMounts:
+            - name: host-node-disks-manager
+              mountPath: /host-node-disks-manager
+      volumes:
+        - name: host-node-disks-manager
+          hostPath:
+            path: {{ .Values.agent.hostPathRoot }}
+            type: DirectoryOrCreate
+{{- end }}
