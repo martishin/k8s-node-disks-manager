@@ -1,4 +1,4 @@
-# node-disks-manager
+# Node Disks Manager
 
 `node-disks-manager` demonstrates an operator + node-agent pattern for discovering node-local disks and coordinating their allocation.
 
