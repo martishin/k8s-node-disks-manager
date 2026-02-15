@@ -10,7 +10,7 @@ The `node-disks-operator` reconciles `NodeDisk` resources and applies a label-dr
 `NodeDisk` is a cluster-scoped resource representing one disk on one node, with explicit ownership boundaries:
 
 * `node-disks-agent` writes `status.node` (phase, capacity, heartbeat, message)
-* `node-disks-operator` writes`status.controller` (validation and reconciliation state).
+* `node-disks-operator` writes `status.controller` (validation and reconciliation state).
 
 For local testing, disks are simulated as `*.img` files under `/var/lib/node-disks-manager/disks`.
 
@@ -108,6 +108,20 @@ You should see both `<disk-id>.img` and `<disk-id>.img.reserved`.
 ```bash
 minikube -p node-disks-dev ssh -n "$NODE_NAME"
 ls -la /var/lib/node-disks-manager/disks
+cat /var/lib/node-disks-manager/disks/${DISK_ID}.img.reserved
+```
+
+### 5) Release the disk and verify it was freed
+
+```bash
+kubectl label nodedisk "$ND_NAME" localtest.example.com/auto-reserve-
+kubectl get nodedisk "$ND_NAME" -o jsonpath='{.spec.desired.state} {.spec.desired.owner} {.status.node.phase}{"\n"}'
+
+# should show only the base image file for this disk after release
+kubectl -n node-disks-system exec "$SEEDER_POD" -- ls -1 /host-node-disks-manager/disks | grep -E "^${DISK_ID}\\.img(\\.reserved)?$"
+
+# optional: verify the reserved marker is gone on the node
+minikube -p node-disks-dev ssh -n "$NODE_NAME" -- test ! -f /var/lib/node-disks-manager/disks/${DISK_ID}.img.reserved && echo "reserved marker removed"
 ```
 
 ## Cleanup
